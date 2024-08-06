@@ -1815,7 +1815,7 @@ public static class Location {
 			case OpenType.None:
 				break;
 			case OpenType.ShowOpen:
-				map->AgentInterface.Hide();
+				map->ResetMapMarkers();
 				// If mob is part of a FATE, show that instead
 				if (Database[mobHuntId].Count == 1 && Database[mobHuntId][0].Fate != 0) {
 					(int X, int Y) pos = MapToWorldCoordinates(Database[mobHuntId][0].Coordinate, mapId);
@@ -1832,14 +1832,18 @@ public static class Location {
 					break;
 				}
 
+
 				foreach (PositionInfo location in Database[mobHuntId]) {
-					Service.PluginLog.Debug($"({location.X}, {location.Y})");
 					(int X, int Y) pos = MapToWorldCoordinates(location.Coordinate, mapId);
 					if (!map->AddMapMarker(new Vector3 { X = pos.X, Y = 0, Z = pos.Y }, 60004)) {
 						Service.PluginLog.Debug("Unable to place all markers on map");
 					}
-					map->OpenMap(mapId, territoryType);
+					else {
+						Service.PluginLog.Debug($"({location.X}, {location.Y})");
+					}
 				}
+				map->OpenMap(mapId);
+
 				break;
 			case OpenType.MarkerOpen:
 				map->AgentInterface.Hide();
