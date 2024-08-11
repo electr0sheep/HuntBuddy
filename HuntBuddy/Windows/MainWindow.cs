@@ -82,7 +82,7 @@ public class MainWindow: Window {
 				.Where(entry => {
 					bool treeOpen = ImGui.TreeNodeEx(entry.Key.Value, ImGuiTreeNodeFlags.AllowItemOverlap);
 					ImGui.SameLine();
-					int killedCount = entry.Value.Count(x => Plugin.Instance.MobHuntStruct->CurrentKills[x.CurrentKillsOffset] == x.NeededKills);
+					int killedCount = entry.Value.Count(x => Plugin.Instance.MobHuntStruct->CurrentKills[(int)x.ExpansionId][(int)x.CurrentKillsOffset] == x.NeededKills);
 					if (killedCount != entry.Value.Count) {
 						ImGui.Text($"({killedCount}/{entry.Value.Count})");
 					}
@@ -182,7 +182,7 @@ public class MainWindow: Window {
 						}
 					}
 
-					int currentKills = Plugin.Instance.MobHuntStruct->CurrentKills[mobHuntEntry.CurrentKillsOffset];
+					int currentKills = Plugin.Instance.MobHuntStruct->CurrentKills[(int)mobHuntEntry.ExpansionId][(int)mobHuntEntry.CurrentKillsOffset];
 					ImGui.Text(mobHuntEntry.Name);
 					if (ImGui.IsItemHovered()) {
 						ImGui.PushStyleColor(ImGuiCol.PopupBg, Vector4.Zero);

@@ -1,10 +1,6 @@
-﻿using System;
+﻿namespace HuntBuddy;
 
-using Dalamud.Interface.Internal;
-
-namespace HuntBuddy;
-
-public class MobHuntEntry: IDisposable {
+public class MobHuntEntry {
 	public string? Name { get; init; }
 
 	public string? TerritoryName { get; init; }
@@ -19,13 +15,15 @@ public class MobHuntEntry: IDisposable {
 
 	public uint MobHuntId { get; init; }
 
+	public int BillNumber { get; init; }
+
+	public int MarkNumber { get; init; }
+
 	public bool IsEliteMark { get; init; }
 
 	public uint CurrentKillsOffset { get; init; }
 
-	public uint NeededKills { get; set; }
+	public int NeededKills { get; set; }
 
-	public IDalamudTextureWrap Icon { get; init; } = null!;
-
-	public void Dispose() => this.Icon.Dispose();
+	public uint Icon { get; init; }
 }

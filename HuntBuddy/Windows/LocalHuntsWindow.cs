@@ -28,6 +28,7 @@ public class LocalHuntsWindow: Window {
 	}
 
 	public override void PreOpenCheck() {
+		//Service.PluginLog.Debug(Plugin.Instance.CurrentAreaMobHuntEntries.Count().ToString());
 		if (Plugin.Instance.Configuration.HideLocalHuntBackground) {
 			if (!this.Flags.HasFlag(ImGuiWindowFlags.NoBackground)) {
 				this.Flags |= ImGuiWindowFlags.NoBackground;
@@ -50,11 +51,11 @@ public class LocalHuntsWindow: Window {
 	public override unsafe bool DrawConditions() => Plugin.Instance.Configuration.ShowLocalHunts
 		&& !Plugin.Instance.CurrentAreaMobHuntEntries.IsEmpty
 		&& Plugin.Instance.CurrentAreaMobHuntEntries
-			.Count(x => Plugin.Instance.MobHuntStruct->CurrentKills[x.CurrentKillsOffset] == x.NeededKills) != Plugin.Instance.CurrentAreaMobHuntEntries.Count;
+			.Count(x => Plugin.Instance.MobHuntStruct->CurrentKills[x.BillNumber][x.MarkNumber] == x.NeededKills) != Plugin.Instance.CurrentAreaMobHuntEntries.Count;
 
 	public override unsafe void Draw() {
 		foreach (MobHuntEntry? mobHuntEntry in Plugin.Instance.CurrentAreaMobHuntEntries) {
-			int currentKills = Plugin.Instance.MobHuntStruct->CurrentKills[mobHuntEntry.CurrentKillsOffset];
+			int currentKills = Plugin.Instance.MobHuntStruct->CurrentKills[mobHuntEntry.BillNumber][mobHuntEntry.MarkNumber];
 
 			if (Plugin.Instance.Configuration.HideCompletedHunts && currentKills == mobHuntEntry.NeededKills) {
 				continue;
