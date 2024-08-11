@@ -40,22 +40,6 @@ public class MainWindow: Window {
 			return;
 		}
 
-		ImGui.BeginGroup();
-		ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.8f, 0.2f, 0.2f, 1));
-		InterfaceUtil.DrawCenteredText("B-RANK AND ARR HUNT MARK");
-		InterfaceUtil.DrawCenteredText("LOCATIONS ARE NOT SUPPORTED");
-		ImGui.PopStyleColor();
-		ImGui.EndGroup();
-		if (ImGui.IsItemHovered()) {
-			InterfaceUtil.DrawWrappedTooltip(ImGuiHelpers.GlobalScale * 400,
-				"B-rank marks have a varying number of potential spawn locations, and will only ever exist in one of them at a time."
-				+ $" {Plugin.Instance.Name} has no way to know which location a given mob is in, and as such cannot direct you to it."
-				+ " You can look up spawn maps online to find the possible spots for your target.\n"
-				+ "\n"
-				+ "Several ARR hunt marks are FATE mobs, which means they aren't always available."
-				+ $" Since {Plugin.Instance.Name} has no way to know if the FATE is up or not, ARR marks are not part of the plugin.");
-		}
-
 		if (InterfaceUtil.IconButton(FontAwesomeIcon.Redo, "Reload")) {
 			Plugin.Instance.MobHuntEntriesReady = false;
 			Task.Run(Plugin.Instance.ReloadData);
@@ -82,7 +66,7 @@ public class MainWindow: Window {
 				.Where(entry => {
 					bool treeOpen = ImGui.TreeNodeEx(entry.Key.Value, ImGuiTreeNodeFlags.AllowItemOverlap);
 					ImGui.SameLine();
-					int killedCount = entry.Value.Count(x => Plugin.Instance.MobHuntStruct->CurrentKills[(int)x.ExpansionId][(int)x.CurrentKillsOffset] == x.NeededKills);
+					int killedCount = entry.Value.Count(x => Plugin.Instance.MobHuntStruct->CurrentKills[x.BillNumber][x.MarkNumber] == x.NeededKills);
 					if (killedCount != entry.Value.Count) {
 						ImGui.Text($"({killedCount}/{entry.Value.Count})");
 					}
@@ -182,7 +166,7 @@ public class MainWindow: Window {
 						}
 					}
 
-					int currentKills = Plugin.Instance.MobHuntStruct->CurrentKills[(int)mobHuntEntry.ExpansionId][(int)mobHuntEntry.CurrentKillsOffset];
+					int currentKills = Plugin.Instance.MobHuntStruct->CurrentKills[mobHuntEntry.BillNumber][mobHuntEntry.MarkNumber];
 					ImGui.Text(mobHuntEntry.Name);
 					if (ImGui.IsItemHovered()) {
 						ImGui.PushStyleColor(ImGuiCol.PopupBg, Vector4.Zero);

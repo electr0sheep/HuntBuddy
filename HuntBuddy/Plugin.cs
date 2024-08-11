@@ -150,7 +150,7 @@ public class Plugin: IDalamudPlugin {
 				case "next":
 					if (this.MobHuntEntries.Count > 0) {
 						bool filterPredicate(MobHuntEntry entry) => entry.IsEliteMark ||
-							this.MobHuntStruct->CurrentKills[(int)entry.ExpansionId].Counts[(int)entry.CurrentKillsOffset] < entry.NeededKills;
+							this.MobHuntStruct->CurrentKills[entry.BillNumber].Counts[entry.MarkNumber] < entry.NeededKills;
 						Location.OpenType openType = Location.OpenType.None;
 						Vector3 playerLocation = Service.ClientState.LocalPlayer!.Position;
 						Lumina.Excel.GeneratedSheets.Map map = Service.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(Service.ClientState.TerritoryType)!.Map!.Value!;
@@ -209,7 +209,7 @@ public class Plugin: IDalamudPlugin {
 								}
 							}
 							else {
-								long remaining = chosen.NeededKills - this.MobHuntStruct->CurrentKills[(int)chosen.ExpansionId][(int)chosen.CurrentKillsOffset];
+								long remaining = chosen.NeededKills - this.MobHuntStruct->CurrentKills[chosen.BillNumber][chosen.MarkNumber];
 								Service.Chat.Print($"Hunting {remaining}x {chosen.Name} in {chosen.TerritoryName}");
 								Location.CreateMapMarker(
 									chosen.TerritoryType,
@@ -289,7 +289,6 @@ public class Plugin: IDalamudPlugin {
 							MobHuntId = mobHuntOrderRow.Target.Value!.Name.Row,
 							BillNumber = billIndex,
 							MarkNumber = (int)mobHuntOrderRow.SubRowId,
-							CurrentKillsOffset = mobHuntOrderRow.RowId,
 							IsEliteMark = mobHuntOrderTypeRow.Type == 2,
 							NeededKills = mobHuntOrderRow.NeededKills,
 							Icon = mobHuntOrderRow.Target.Value.Icon,
@@ -309,13 +308,9 @@ public class Plugin: IDalamudPlugin {
 			KeyValuePair<uint, string> subKey =
 				new(entry.TerritoryType, entry.TerritoryName ?? "Unknown");
 
-			if (!this.MobHuntEntries.ContainsKey(key)) {
-				this.MobHuntEntries[key] = [];
-			}
+			this.MobHuntEntries.TryAdd(key, []);
 
-			if (!this.MobHuntEntries[key].ContainsKey(subKey)) {
-				this.MobHuntEntries[key][subKey] = [];
-			}
+			this.MobHuntEntries[key].TryAdd(subKey, []);
 
 			this.MobHuntEntries[key][subKey].Add(entry);
 		}

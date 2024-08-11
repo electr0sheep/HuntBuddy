@@ -21,8 +21,6 @@ public class MobHuntEntry {
 
 	public bool IsEliteMark { get; init; }
 
-	public uint CurrentKillsOffset { get; init; }
-
 	public int NeededKills { get; set; }
 
 	public uint Icon { get; init; }
