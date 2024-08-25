@@ -24,6 +24,11 @@
         <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
     <ItemGroup>
+      <Compile Remove="Structs\**" />
+      <EmbeddedResource Remove="Structs\**" />
+      <None Remove="Structs\**" />
+    </ItemGroup>
+    <ItemGroup>
         <Reference Include="Dalamud">
             <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
             <Private>False</Private>
@@ -55,8 +60,5 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="DalamudPackager" Version="2.1.13" />
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Structs\" />
     </ItemGroup>
 </Project>

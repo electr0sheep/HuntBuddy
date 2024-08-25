@@ -1862,7 +1862,9 @@ public static class Location {
 			} },
 			{ 13154, new List<PositionInfo>() {							// Jewel Bearer
 				new() { X = 12.3f, Y = 37.6f },
-				new() { X = 33.0f, Y = 20.8f },
+				new() { X = 38.8f, Y = 30.4f },
+				new() { X = 26.9f, Y = 31.0f },
+				new() { X = 04.2f, Y = 28.8f },
 			} },
 
 			// Daily Targets
@@ -2010,7 +2012,6 @@ public static class Location {
 			case OpenType.None:
 				break;
 			case OpenType.ShowOpen:
-				map->AgentInterface.Hide();
 				// If mob is part of a FATE, show that instead
 				if (Database[mobHuntId].Count == 1 && Database[mobHuntId][0].Fate != 0) {
 					(int X, int Y) pos = MapToWorldCoordinates(Database[mobHuntId][0].Coordinate, mapId);
@@ -2028,7 +2029,6 @@ public static class Location {
 				}
 
 				foreach (PositionInfo location in Database[mobHuntId]) {
-					Service.PluginLog.Debug($"({location.X}, {location.Y})");
 					(int X, int Y) pos = MapToWorldCoordinates(location.Coordinate, mapId);
 					if (!map->AddMapMarker(new Vector3 { X = pos.X, Y = 0, Z = pos.Y }, 60004)) {
 						Service.PluginLog.Debug("Unable to place all markers on map");
