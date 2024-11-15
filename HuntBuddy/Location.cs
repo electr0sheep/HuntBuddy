@@ -5,7 +5,7 @@ using System.Numerics;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 using MapType = FFXIVClientStructs.FFXIV.Client.UI.Agent.MapType;
 
@@ -1426,6 +1426,7 @@ public static class Location {
 				new() { X = 19.5f, Y = 25.2f },
 				new() { X = 16.0f, Y = 24.0f },
 				new() { X = 19.5f, Y = 29.0f },
+				new() { X = 17.1f, Y = 31.8f },
 			} },
 			{ 08904, new List<PositionInfo>() {							// Juggler Hecatomb
 				new() { X = 28.6f, Y = 12.3f },
@@ -1478,6 +1479,7 @@ public static class Location {
 				new() { X = 26.3f, Y = 14.9f },
 				new() { X = 22.0f, Y = 10.0f },
 				new() { X = 22.0f, Y = 13.3f },
+				new() { X = 29.6f, Y = 25.9f },
 			} },
 			// The Tempest
 			{ 08899, new List<PositionInfo>() {							// Deacon
@@ -1835,7 +1837,8 @@ public static class Location {
 			} },
 			// Shaaloani
 			{ 13150, new List<PositionInfo>() {							// Nopalitender Fabuloso
-				// Unknown spawn locations
+				new() { X = 25.0f, Y = 23.0f },
+				new() { X = 21.7f, Y = 27.8f },
 			} },
 			{ 13151, new List<PositionInfo>() {							// Uktena
 				new() { X = 23.0f, Y = 18.3f },
@@ -2046,7 +2049,7 @@ public static class Location {
 	}
 
 	private static (int X, int Y) MapToWorldCoordinates(Vector2 pos, uint mapId) {
-		ushort scale = Service.DataManager.GetExcelSheet<Map>()?.GetRow(mapId)?.SizeFactor ?? 100;
+		ushort scale = Service.DataManager.GetExcelSheet<Map>().GetRow(mapId).SizeFactor;
 		float num = scale / 100f;
 		float x = (float)(((pos.X - 1.0) * num / 41.0 * 2048.0) - 1024.0) / num * 1000f;
 		float y = (float)(((pos.Y - 1.0) * num / 41.0 * 2048.0) - 1024.0) / num * 1000f;
@@ -2069,35 +2072,36 @@ public static class Location {
 	}
 
 	public static void TeleportToNearestAetheryte(uint territoryType, uint mapId, uint mobHuntId) {
-		Map? mapRow = Service.DataManager.Excel.GetSheet<Map>()?.GetRow(mapId);
+		Map map = Service.DataManager.GetExcelSheet<Map>().GetRow(mapId).TerritoryType.Value.Map.Value;
+		//Map? mapRow = Service.DataManager.GetExcelSheet<Map>()?.GetRow(mapId);
 
-		if (mapRow == null) {
-			return;
-		}
+		//if (mapRow == null) {
+		//	return;
+		//}
 
-		ushort? nearestAetheryteId = Service.DataManager.Excel.GetSheet<MapMarker>()
-			?.Where(x => x.DataType == 3 && x.RowId == mapRow.MapMarkerRange)
+		uint nearestAetheryteId = Service.DataManager.GetSubrowExcelSheet<MapMarker>()
+			.SelectMany(x => x)
+			.Where(x => x.DataType == 3 && x.RowId == map.MapMarkerRange)
 			.Select(
 				x => new {
 					distance = Vector2.DistanceSquared(
 						Database[mobHuntId][0].Coordinate,
-						ConvertPixelPositionToMapCoordinate(x.X, x.Y, mapRow.SizeFactor)),
-					rowId = x.DataKey
+						ConvertPixelPositionToMapCoordinate(x.X, x.Y, map.SizeFactor)),
+					rowId = x.DataKey.RowId
 				})
-			.OrderBy(x => x.distance)
-			.FirstOrDefault()?.rowId;
+			.MinBy(x => x.distance)!.rowId;
 
 		Aetheryte? nearestAetheryte =
 			territoryType == 399 // Support the unique case of aetheryte not being in the same map
-				? mapRow.TerritoryType?.Value?.Aetheryte.Value
+				? map.TerritoryType.Value.Aetheryte.Value
 				: Service.DataManager.Excel.GetSheet<Aetheryte>()?.FirstOrDefault(
 					x =>
-						x.IsAetheryte && x.Territory.Row == territoryType && x.RowId == nearestAetheryteId);
+						x.IsAetheryte && x.Territory.RowId == territoryType && x.RowId == nearestAetheryteId);
 
 		if (nearestAetheryte == null) {
 			return;
 		}
 
-		Plugin.TeleportConsumer?.Teleport(nearestAetheryte.RowId);
+		Plugin.TeleportConsumer?.Teleport(nearestAetheryte.Value.RowId);
 	}
 }

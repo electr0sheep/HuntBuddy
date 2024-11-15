@@ -18,8 +18,8 @@ using HuntBuddy.Windows;
 using ImGuiNET;
 
 using Lumina.Excel;
-using Lumina.Excel.GeneratedSheets;
-using Lumina.Text;
+using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
 
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
@@ -153,7 +153,7 @@ public class Plugin: IDalamudPlugin {
 							this.MobHuntStruct->CurrentKills[entry.BillNumber].Counts[entry.MarkNumber] < entry.NeededKills;
 						Location.OpenType openType = Location.OpenType.None;
 						Vector3 playerLocation = Service.ClientState.LocalPlayer!.Position;
-						Lumina.Excel.GeneratedSheets.Map map = Service.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(Service.ClientState.TerritoryType)!.Map!.Value!;
+						Lumina.Excel.Sheets.Map map = Service.DataManager.GetExcelSheet<TerritoryType>()!.GetRow(Service.ClientState.TerritoryType)!.Map!.Value!;
 						Vector2 playerVec2 = MapUtil.WorldToMap(new Vector2(playerLocation.X, playerLocation.Z), map);
 						MobHuntEntry? chosen = this.CurrentAreaMobHuntEntries
 							.Where(filterPredicate)
@@ -167,13 +167,13 @@ public class Plugin: IDalamudPlugin {
 							openType = this.Configuration.IncludeAreaOnMap
 								? Location.OpenType.ShowOpen
 								: Location.OpenType.MarkerOpen;
-							SeString? expansion =
+							ReadOnlySeString? expansion =
 								Service.DataManager.Excel.GetSheet<TerritoryType>()!.GetRow(Service.ClientState
 									.TerritoryType)!.ExVersion.Value!.Name;
 							Service.PluginLog.Information(
 								$"Player is in a zone from {expansion}; known expansions are {string.Join(", ", this.MobHuntEntries.Keys)}");
-							List<MobHuntEntry> candidates = this.MobHuntEntries.ContainsKey(expansion)
-								? this.MobHuntEntries[expansion]
+							List<MobHuntEntry> candidates = this.MobHuntEntries.ContainsKey(expansion.Value.ToString())
+								? this.MobHuntEntries[expansion.Value.ToString()]
 									.Values
 									.SelectMany(l => l)
 									.Where(filterPredicate)
@@ -256,7 +256,7 @@ public class Plugin: IDalamudPlugin {
 	public unsafe void ReloadData() {
 		this.MobHuntEntries.Clear();
 		List<MobHuntEntry> mobHuntList = [];
-		ExcelSheet<MobHuntOrder>? mobHuntOrderSheet = Service.DataManager.Excel.GetSheet<MobHuntOrder>()!;
+		SubrowExcelSheet<MobHuntOrder>? mobHuntOrderSheet = Service.DataManager.Excel.GetSubrowSheet<MobHuntOrder>()!;
 
 		for (int billIndex = 0; billIndex < MobHunt.MaxMarkIndex; billIndex++) {
 			if (!this.MobHuntStruct->IsMarkBillObtained(billIndex)) {
@@ -268,27 +268,27 @@ public class Plugin: IDalamudPlugin {
 
 			int rowId = this.MobHuntStruct->GetObtainedHuntOrderRowId((byte)billIndex);
 
-			if (rowId > mobHuntOrderSheet.RowCount) {
+			if (rowId > mobHuntOrderSheet.TotalSubrowCount) {
 				continue;
 			}
 
-			IEnumerable<MobHuntOrder> mobHuntOrderRows = mobHuntOrderSheet.Where(x => x.RowId == rowId);
+			IEnumerable<MobHuntOrder> mobHuntOrderRows = mobHuntOrderSheet.SelectMany(x => x).Where(x => x.RowId == rowId);
 
 			foreach (MobHuntOrder mobHuntOrderRow in mobHuntOrderRows) {
-				MobHuntEntry? mobHuntEntry = mobHuntList.FirstOrDefault(x => x.MobHuntId == mobHuntOrderRow.Target.Value!.Name.Row);
+				MobHuntEntry? mobHuntEntry = mobHuntList.FirstOrDefault(x => x.MobHuntId == mobHuntOrderRow.Target.Value!.Name.RowId);
 
 				if (mobHuntEntry == null) {
 					mobHuntList.Add(
 						new MobHuntEntry {
-							Name = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(mobHuntOrderRow.Target.Value!.Name.Value!.Singular),
-							TerritoryName = mobHuntOrderRow.Target.Value!.TerritoryType.Value!.PlaceName.Value!.Name,
-							ExpansionName = mobHuntOrderRow.Target.Value!.TerritoryType.Value!.TerritoryType.Value!.ExVersion.Value!.Name,
-							ExpansionId = mobHuntOrderRow.Target.Value!.TerritoryType.Value.TerritoryType.Value!.ExVersion.Row,
-							MapId = mobHuntOrderRow.Target.Value!.TerritoryType.Row,
-							TerritoryType = mobHuntOrderRow.Target.Value!.TerritoryType.Value.TerritoryType.Row,
-							MobHuntId = mobHuntOrderRow.Target.Value!.Name.Row,
+							Name = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(mobHuntOrderRow.Target.Value!.Name.Value!.Singular.ToString()),
+							TerritoryName = mobHuntOrderRow.Target.Value!.TerritoryType.Value!.PlaceName.Value!.Name.ToString(),
+							ExpansionName = mobHuntOrderRow.Target.Value!.TerritoryType.Value!.TerritoryType.Value!.ExVersion.Value!.Name.ToString(),
+							ExpansionId = mobHuntOrderRow.Target.Value!.TerritoryType.Value.TerritoryType.Value!.ExVersion.RowId,
+							MapId = mobHuntOrderRow.Target.Value!.TerritoryType.RowId,
+							TerritoryType = mobHuntOrderRow.Target.Value!.TerritoryType.Value.TerritoryType.RowId,
+							MobHuntId = mobHuntOrderRow.Target.Value!.Name.RowId,
 							BillNumber = billIndex,
-							MarkNumber = (int)mobHuntOrderRow.SubRowId,
+							MarkNumber = (int)mobHuntOrderRow.SubrowId,
 							IsEliteMark = mobHuntOrderTypeRow.Type == 2,
 							NeededKills = mobHuntOrderRow.NeededKills,
 							Icon = mobHuntOrderRow.Target.Value.Icon,
